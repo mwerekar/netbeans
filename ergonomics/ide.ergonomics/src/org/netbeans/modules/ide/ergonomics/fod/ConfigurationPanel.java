@@ -24,9 +24,11 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -49,7 +51,6 @@ import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
 import org.netbeans.modules.autoupdate.ui.api.PluginManager;
 import org.openide.awt.Mnemonics;
-import org.openide.modules.SpecificationVersion;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor.Task;
@@ -93,7 +94,7 @@ public class ConfigurationPanel extends JPanel implements Runnable {
     public void setInfo(FeatureInfo info, String displayName, Collection<UpdateElement> toInstall,
             Collection<FeatureInfo.ExtraModuleInfo> missingModules,
             Map<FeatureInfo.ExtraModuleInfo, FeatureInfo> extrasMap, boolean required) {
-        this.extrasFilter = new HashSet<FeatureInfo.ExtraModuleInfo>();
+        this.extrasFilter = new HashSet<>();
         this.featureInfo = info;
         this.featureInstall = toInstall;
         boolean activateNow = toInstall.isEmpty() && missingModules.isEmpty();
@@ -142,29 +143,17 @@ public class ConfigurationPanel extends JPanel implements Runnable {
             downloadLabel.setVisible(true);
             activateButton.setVisible(true);
             downloadButton.setVisible(true);
-            StringBuilder sbDownload = new StringBuilder();
-
+            
             // collect descriptions from features contributing installed extras
-            for (FeatureInfo fi : extrasMap.values()) {
-                String s = required
-                        ? fi.getExtraModulesRequiredText()
-                        : fi.getExtraModulesRecommendedText();
-                if (s != null) {
-                    if (sbDownload.length() > 0) {
-                        sbDownload.append("\n");
-                    }
-                    sbDownload.append(s);
-                }
-            }
+            List<String> downloadStringList = collectExtraModulesTextsFromFeatures(extrasMap.values(), required);
+            String lblDownloadMsg = generateDownloadMessageFromExtraModulesTexts(downloadStringList);
+            
             if (required) {
                 activateButton.setEnabled(false);
             } else {
                 activateButton.setEnabled(true);
             }
 
-            String lblDownloadMsg = sbDownload.toString();
-
-            String list = "";
             if (!missingModules.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
                 for (FeatureInfo.ExtraModuleInfo s : missingModules) {
@@ -173,7 +162,7 @@ public class ConfigurationPanel extends JPanel implements Runnable {
                     }
                     sb.append(s.displayName());
                 }
-                list = sb.toString();
+                String list = sb.toString();
                 if (required) {
                     lblDownloadMsg = NbBundle.getMessage(ConfigurationPanel.class, "MSG_MissingRequiredModules", displayName, list);
                     activateButton.setEnabled(false);
@@ -193,6 +182,40 @@ public class ConfigurationPanel extends JPanel implements Runnable {
             org.openide.awt.Mnemonics.setLocalizedText(downloadLabel, lblDownloadMsg);
             org.openide.awt.Mnemonics.setLocalizedText(downloadButton, btnDownloadMsg);
         }
+    }
+    
+    /**
+     * Collect extra modules texts
+     */
+    protected List<String> collectExtraModulesTextsFromFeatures(Collection<FeatureInfo> features, boolean required) {
+        List<String> descriptionsList = new ArrayList<>();
+        for (FeatureInfo fi : features) {
+            String s = required ? fi.getExtraModulesRequiredText(): fi.getExtraModulesRecommendedText();
+            if (!descriptionsList.contains(s)) {
+                descriptionsList.add(s);
+            }
+        }
+        return descriptionsList;
+    } 
+    
+    /**
+     * Generate download message from extra modules texts
+     * @param extraModulesTexts
+     * @return String Text to set in download label
+     */
+    protected String generateDownloadMessageFromExtraModulesTexts(List<String> extraModulesTexts) {
+        StringBuilder sbDownload = new StringBuilder();
+        if (!extraModulesTexts.isEmpty()) {
+            sbDownload.append("<html><body>");
+            for (int i = 0; i < extraModulesTexts.size(); i++) {
+                sbDownload.append(extraModulesTexts.get(i));
+                if (extraModulesTexts.size() > 1 && i < extraModulesTexts.size() - 1) {
+                    sbDownload.append("<br>");
+                }
+            }
+            sbDownload.append("</body></html>");
+        }
+        return sbDownload.toString();
     }
 
     @Override
