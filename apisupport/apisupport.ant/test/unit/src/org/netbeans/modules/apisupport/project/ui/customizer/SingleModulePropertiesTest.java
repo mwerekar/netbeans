@@ -81,6 +81,7 @@ public class SingleModulePropertiesTest extends TestBase {
         super(name);
     }
 
+    @Override
     protected void setUp() throws Exception {
         noDataDir = true;
         clearWorkDir();
@@ -238,7 +239,7 @@ public class SingleModulePropertiesTest extends TestBase {
     // cannot be run in binary dist, requires sources; test against fake platform
     public void testGetPublicPackagesForNBOrg() throws Exception {
         // libs.xerces properties
-        NbModuleProject libP = (NbModuleProject) ProjectManager.getDefault().findProject(nbRoot().getFileObject("libs.xerces"));
+        NbModuleProject libP = (NbModuleProject) ProjectManager.getDefault().findProject(nbRoot().getFileObject("ide/libs.xerces"));
         SingleModuleProperties props = loadProperties(libP);
         PublicPackagesTableModel pptm = props.getPublicPackagesModel();
         assertEquals("number of available public packages", 38, pptm.getRowCount());
@@ -403,7 +404,7 @@ public class SingleModulePropertiesTest extends TestBase {
     // XXX cannot be run in binary dist, requires sources; test against fake platform
     public void testGetAvailableFriendsForNBOrg() throws Exception {
         // netbeans.org
-        Project javaProject = ProjectManager.getDefault().findProject(nbRoot().getFileObject("java.project"));
+        Project javaProject = ProjectManager.getDefault().findProject(nbRoot().getFileObject("java/java.project"));
         SingleModuleProperties props = loadProperties((NbModuleProject) javaProject);
         assertTrue("There are two available friends for component2.", props.getAvailableFriends().length > 50);
     }

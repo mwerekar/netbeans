@@ -459,7 +459,7 @@ matrix:
             - ant $OPTS clean
             - ant $OPTS build
           script:
-            #- ant $OPTS -f apisupport/apisupport.ant test
+            - ant $OPTS -f apisupport/apisupport.ant test
             - ant $OPTS -f apisupport/apisupport.project test
             - ant $OPTS -f apisupport/apisupport.refactoring test
             - ant $OPTS -f apisupport/apisupport.wizards test
